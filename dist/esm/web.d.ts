@@ -1,4 +1,5 @@
 import { WebPlugin } from '@capacitor/core';
+
 import type {
   AdMobPlugin,
   ApplicationMutedOptions,
@@ -9,6 +10,7 @@ import type {
 import type { AdMobRewardItem } from './reward';
 import type { AdOptions, AdLoadInfo } from './shared';
 import type { TrackingAuthorizationStatusInterface } from './shared/tracking-authorization-status.interface';
+
 export declare class AdMobWeb extends WebPlugin implements AdMobPlugin {
   initialize(): Promise<void>;
   requestTrackingAuthorization(): Promise<void>;
