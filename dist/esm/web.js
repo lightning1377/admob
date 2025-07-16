@@ -82,5 +82,8 @@ export class AdMobWeb extends WebPlugin {
             amount: 0,
         };
     }
+    async openAdInspector() {
+        return;
+    }
 }
 //# sourceMappingURL=web.js.map

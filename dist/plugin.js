@@ -331,6 +331,9 @@ var capacitorStripe = (function (exports, core) {
                 amount: 0,
             };
         }
+        async openAdInspector() {
+            return;
+        }
     }
 
     var web = /*#__PURE__*/Object.freeze({

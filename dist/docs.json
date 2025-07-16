@@ -210,6 +210,30 @@
         "slug": "setapplicationvolume"
       },
       {
+        "name": "openAdInspector",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "see",
+            "text": [
+              {
+                "text": "https",
+                "kind": "text"
+              },
+              {
+                "text": "://developers.google.com/admob/ios/ad-inspector",
+                "kind": "text"
+              }
+            ]
+          }
+        ],
+        "docs": "Open ad inspector (Only works if adId/IDFA is registered as test device in admob)",
+        "complexTypes": [],
+        "slug": "openadinspector"
+      },
+      {
         "name": "showBanner",
         "signature": "(options: BannerAdOptions) => Promise<void>",
         "parameters": [
