@@ -27,7 +27,8 @@ public class AdMobPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "prepareRewardVideoAd", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "showRewardVideoAd", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "prepareRewardInterstitialAd", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "showRewardInterstitialAd", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "showRewardInterstitialAd", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "openAdInspector", returnType: CAPPluginReturnPromise)
     ]
 
     var testingDevices: [String] = []
@@ -242,6 +243,16 @@ public class AdMobPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func resetConsentInfo(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             self.consentExecutor.resetConsentInfo(call)
+        }
+    }
+
+    @objc func openAdInspector(_ call: CAPPluginCall) {
+        GADMobileAds.sharedInstance().presentAdInspector(from: viewController) { error in
+            if error != nil {
+                call.reject(error)
+            } else {
+                call.resolve()
+            }
         }
     }
 

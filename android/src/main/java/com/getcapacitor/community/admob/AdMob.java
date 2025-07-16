@@ -186,6 +186,22 @@ public class AdMob extends Plugin {
         adRewardInterstitialExecutor.showRewardInterstitialAd(call, this::notifyListeners);
     }
 
+    @PluginMethod
+    public void openAdInspector(final PluginCall call) {
+        MobileAds.openAdInspector(
+            context,
+            new OnAdInspectorClosedListener() {
+                public void onAdInspectorClosed(@Nullable AdInspectorError error) {
+                    if (error != null) {
+                        call.reject(error);
+                    } else {
+                        call.resolve();
+                    }
+                }
+            }
+        );
+    }
+
     /**
      * @see <a href="https://developers.google.com/admob/android/test-ads#enable_test_devices">Test Devices</a>
      * @see <a href="https://developers.google.com/admob/android/targeting">Target Settings</a>
