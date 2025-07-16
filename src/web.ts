@@ -111,4 +111,8 @@ export class AdMobWeb extends WebPlugin implements AdMobPlugin {
       amount: 0,
     };
   }
+
+  async openAdInspector(): Promise<void> {
+    return;
+  }
 }

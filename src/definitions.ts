@@ -53,6 +53,13 @@ export interface AdMobPlugin extends AdMobDefinitions {
    * @since 4.1.1
    */
   setApplicationVolume(options: ApplicationVolumeOptions): Promise<void>;
+
+  /**
+   * Open ad inspector (Only works if adId/IDFA is registered as test device in admob)
+   *
+   * @see https://developers.google.com/admob/ios/ad-inspector
+   */
+  openAdInspector(): Promise<void>;
 }
 
 export interface AdMobInitializationOptions {
