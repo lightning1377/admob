@@ -188,13 +188,16 @@ public class AdMob extends Plugin {
 
     @PluginMethod
     public void openAdInspector(final PluginCall call) {
-        MobileAds.openAdInspector(getContext(), error -> {
-            if (error != null) {
-                call.reject(error.getMessage());
-            } else {
-                call.resolve();
-            }
-        });
+        getActivity()
+            .runOnUiThread(() -> {
+                MobileAds.openAdInspector(getContext(), error -> {
+                    if (error != null) {
+                        call.reject(error.getMessage());
+                    } else {
+                        call.resolve();
+                    }
+                });
+            });
     }
 
     /**

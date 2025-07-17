@@ -247,14 +247,15 @@ public class AdMobPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func openAdInspector(_ call: CAPPluginCall) {
-        call.resolve()
-        // GADMobileAds.sharedInstance().presentAdInspector(from: viewController) { error in
-        //     if error != nil {
-        //         call.reject(error)
-        //     } else {
-        //         call.resolve()
-        //     }
-        // }
+        DispatchQueue.main.async {
+            MobileAds.shared.presentAdInspector(from: self.getRootVC()) { error in
+                if let error = error {
+                    call.reject(error.localizedDescription)
+                } else {
+                    call.resolve()
+                }
+            }
+        }
     }
 
     private func getAdId(_ call: CAPPluginCall, _ testingID: String) -> String {
