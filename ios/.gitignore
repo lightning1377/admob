@@ -6,3 +6,12 @@ DerivedData/
 .swiftpm/configuration/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
+
+Plugin.plist
+PluginTests.plist
+Podfile
+Podfile.lock
+project.yml
+Plugin.xcodeproj/project.pbxproj
+Plugin.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+Plugin.xcworkspace/contents.xcworkspacedata
