@@ -40,11 +40,7 @@ class BannerExecutor: NSObject, BannerViewDelegate {
                 let frame = { () -> CGRect in
                     // Here safe area is taken into account, hence the view frame is used
                     // after the view has been laid out.
-                    if #available(iOS 11.0, *) {
-                        return rootViewController.view.frame.inset(by: rootViewController.view.safeAreaInsets)
-                    } else {
-                        return rootViewController.view.frame
-                    }
+                    return rootViewController.view.frame.inset(by: rootViewController.view.safeAreaInsets)
                 }()
                 let viewWidth = frame.size.width
                 bannerSize = currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
@@ -140,7 +136,7 @@ class BannerExecutor: NSObject, BannerViewDelegate {
                                     attribute: self.adPosition == "TOP_CENTER" ? .top : .bottom,
                                     multiplier: 1,
                                     constant: CGFloat(Int(self.Margin) * -1)),
-                    NSLayoutConstraint(item: bannerView,
+                 NSLayoutConstraint(item: bannerView,
                                     attribute: .centerX,
                                     relatedBy: .equal,
                                     toItem: rootViewController.view,
