@@ -4,7 +4,6 @@ import type { InterstitialDefinitions } from './interstitial';
 import type { RewardDefinitions } from './reward';
 import type { RewardInterstitialDefinitions } from './reward-interstitial';
 import type { TrackingAuthorizationStatusInterface } from './shared/tracking-authorization-status.interface';
-
 declare type AdMobDefinitions = BannerDefinitions &
   RewardDefinitions &
   RewardInterstitialDefinitions &
@@ -28,7 +27,6 @@ export interface AdMobPlugin extends AdMobDefinitions {
   trackingAuthorizationStatus(): Promise<TrackingAuthorizationStatusInterface>;
   /**
    * request requestTrackingAuthorization (iOS >14).
-   * This is deprecated method. We recommend UMP Consent.
    *
    * @see https://developer.apple.com/documentation/apptrackingtransparency/attrackingmanager/3547038-trackingauthorizationstatus
    * @since 5.2.0

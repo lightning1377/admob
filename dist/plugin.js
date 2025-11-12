@@ -241,13 +241,43 @@ var capacitorStripe = (function (exports, core) {
         AdmobConsentDebugGeography[AdmobConsentDebugGeography["EEA"] = 1] = "EEA";
         /**
          * Geography appears as not in EEA for debug devices.
+         * @deprecated
          */
         AdmobConsentDebugGeography[AdmobConsentDebugGeography["NOT_EEA"] = 2] = "NOT_EEA";
+        /**
+         * Geography appears as in regulated US state for debug devices.
+         */
+        AdmobConsentDebugGeography[AdmobConsentDebugGeography["US"] = 3] = "US";
+        /**
+         * Geography appears as OTHER state for debug devices.
+         */
+        AdmobConsentDebugGeography[AdmobConsentDebugGeography["OTHER"] = 4] = "OTHER";
     })(exports.AdmobConsentDebugGeography || (exports.AdmobConsentDebugGeography = {}));
 
     const AdMob = core.registerPlugin('AdMob', {
         web: () => Promise.resolve().then(function () { return web; }).then((m) => new m.AdMobWeb()),
     });
+
+    /**
+     *  For more information:
+     *  https://developers.google.com/admob/unity/reference/namespace/google-mobile-ads/ump/api#privacyoptionsrequirementstatus
+     *
+     * */
+    var PrivacyOptionsRequirementStatus;
+    (function (PrivacyOptionsRequirementStatus) {
+        /**
+         * Privacy options entry point is not required.
+         */
+        PrivacyOptionsRequirementStatus["NOT_REQUIRED"] = "NOT_REQUIRED";
+        /**
+         * Privacy options entry point is required.
+         */
+        PrivacyOptionsRequirementStatus["REQUIRED"] = "REQUIRED";
+        /**
+         * Privacy options requirement status is unknown.
+         */
+        PrivacyOptionsRequirementStatus["UNKNOWN"] = "UNKNOWN";
+    })(PrivacyOptionsRequirementStatus || (PrivacyOptionsRequirementStatus = {}));
 
     class AdMobWeb extends core.WebPlugin {
         async initialize() {
@@ -266,12 +296,19 @@ var capacitorStripe = (function (exports, core) {
             return {
                 status: exports.AdmobConsentStatus.REQUIRED,
                 isConsentFormAvailable: true,
+                canRequestAds: true,
+                privacyOptionsRequirementStatus: PrivacyOptionsRequirementStatus.REQUIRED,
             };
+        }
+        async showPrivacyOptionsForm() {
+            console.log('showPrivacyOptionsForm');
         }
         async showConsentForm() {
             console.log('showConsentForm');
             return {
                 status: exports.AdmobConsentStatus.REQUIRED,
+                canRequestAds: true,
+                privacyOptionsRequirementStatus: PrivacyOptionsRequirementStatus.REQUIRED,
             };
         }
         async resetConsentInfo() {

@@ -1,5 +1,6 @@
 import { WebPlugin } from '@capacitor/core';
 import { AdmobConsentStatus } from './consent/consent-status.enum';
+import { PrivacyOptionsRequirementStatus } from './consent/privacy-options-requirement-status.enum';
 export class AdMobWeb extends WebPlugin {
     async initialize() {
         console.log('initialize');
@@ -17,12 +18,19 @@ export class AdMobWeb extends WebPlugin {
         return {
             status: AdmobConsentStatus.REQUIRED,
             isConsentFormAvailable: true,
+            canRequestAds: true,
+            privacyOptionsRequirementStatus: PrivacyOptionsRequirementStatus.REQUIRED,
         };
+    }
+    async showPrivacyOptionsForm() {
+        console.log('showPrivacyOptionsForm');
     }
     async showConsentForm() {
         console.log('showConsentForm');
         return {
             status: AdmobConsentStatus.REQUIRED,
+            canRequestAds: true,
+            privacyOptionsRequirementStatus: PrivacyOptionsRequirementStatus.REQUIRED,
         };
     }
     async resetConsentInfo() {

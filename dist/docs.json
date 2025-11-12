@@ -123,7 +123,7 @@
             ]
           }
         ],
-        "docs": "request requestTrackingAuthorization (iOS >14).\nThis is deprecated method. We recommend UMP Consent.",
+        "docs": "request requestTrackingAuthorization (iOS >14).",
         "complexTypes": [],
         "slug": "requesttrackingauthorization"
       },
@@ -844,6 +844,35 @@
           "AdmobConsentRequestOptions"
         ],
         "slug": "requestconsentinfo"
+      },
+      {
+        "name": "showPrivacyOptionsForm",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "group",
+            "text": [
+              {
+                "text": "Consent",
+                "kind": "text"
+              }
+            ]
+          },
+          {
+            "name": "since",
+            "text": [
+              {
+                "text": "7.0.3",
+                "kind": "text"
+              }
+            ]
+          }
+        ],
+        "docs": "Shows a google privacy options form (rendered from your GDPR message config).",
+        "complexTypes": [],
+        "slug": "showprivacyoptionsform"
       },
       {
         "name": "showConsentForm",
@@ -2103,10 +2132,47 @@
           "docs": "If `true` a consent form is available and vice versa.",
           "complexTypes": [],
           "type": "boolean | undefined"
+        },
+        {
+          "name": "canRequestAds",
+          "tags": [
+            {
+              "text": [
+                {
+                  "text": "7.0.3",
+                  "kind": "text"
+                }
+              ],
+              "name": "since"
+            }
+          ],
+          "docs": "If `true` an ad can be shown.",
+          "complexTypes": [],
+          "type": "boolean"
+        },
+        {
+          "name": "privacyOptionsRequirementStatus",
+          "tags": [
+            {
+              "text": [
+                {
+                  "text": "7.0.3",
+                  "kind": "text"
+                }
+              ],
+              "name": "since"
+            }
+          ],
+          "docs": "Privacy options requirement status of the user.",
+          "complexTypes": [
+            "PrivacyOptionsRequirementStatus"
+          ],
+          "type": "PrivacyOptionsRequirementStatus"
         }
       ],
       "importObject": [
-        "AdmobConsentStatus"
+        "AdmobConsentStatus",
+        "PrivacyOptionsRequirementStatus"
       ]
     },
     {
@@ -2285,7 +2351,7 @@
               "name": "since"
             }
           ],
-          "docs": "Margin Banner. Default is 0px;\r\nIf position is BOTTOM_CENTER, margin is be margin-bottom.\r\nIf position is TOP_CENTER, margin is be margin-top.",
+          "docs": "Margin Banner. Default is 0px;\nIf position is BOTTOM_CENTER, margin is be margin-bottom.\nIf position is TOP_CENTER, margin is be margin-top.",
           "complexTypes": [],
           "type": "number | undefined"
         },
@@ -2337,7 +2403,50 @@
               "name": "since"
             }
           ],
-          "docs": "The default behavior of the Google Mobile Ads SDK is to serve personalized ads.\r\nSet this to true to request Non-Personalized Ads",
+          "docs": "The default behavior of the Google Mobile Ads SDK is to serve personalized ads.\nSet this to true to request Non-Personalized Ads",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "immersiveMode",
+          "tags": [
+            {
+              "text": [
+                {
+                  "text": "https",
+                  "kind": "text"
+                },
+                {
+                  "text": "://developers.google.com/admob/android/reference/com/google/android/gms/ads/interstitial/InterstitialAd#setImmersiveMode(boolean)",
+                  "kind": "text"
+                }
+              ],
+              "name": "see"
+            },
+            {
+              "text": [
+                {
+                  "text": "https",
+                  "kind": "text"
+                },
+                {
+                  "text": "://developers.google.com/admob/android/reference/com/google/android/gms/ads/rewarded/RewardedAd#setImmersiveMode(boolean)",
+                  "kind": "text"
+                }
+              ],
+              "name": "see"
+            },
+            {
+              "text": [
+                {
+                  "text": "7.0.3",
+                  "kind": "text"
+                }
+              ],
+              "name": "since"
+            }
+          ],
+          "docs": "Sets a flag that controls if this interstitial or reward object will be displayed in immersive mode.\nCall this method before show.\nDuring show, if this flag is on and immersive mode is supported,\nSYSTEM_UI_FLAG_IMMERSIVE_STICKY &SYSTEM_UI_FLAG_HIDE_NAVIGATION will be turned on for interstitial or reward ad.",
           "complexTypes": [],
           "type": "boolean | undefined"
         }
@@ -2651,6 +2760,30 @@
       ]
     },
     {
+      "name": "PrivacyOptionsRequirementStatus",
+      "slug": "privacyoptionsrequirementstatus",
+      "members": [
+        {
+          "name": "NOT_REQUIRED",
+          "value": "'NOT_REQUIRED'",
+          "tags": [],
+          "docs": "Privacy options entry point is not required."
+        },
+        {
+          "name": "REQUIRED",
+          "value": "'REQUIRED'",
+          "tags": [],
+          "docs": "Privacy options entry point is required."
+        },
+        {
+          "name": "UNKNOWN",
+          "value": "'UNKNOWN'",
+          "tags": [],
+          "docs": "Privacy options requirement status is unknown."
+        }
+      ]
+    },
+    {
       "name": "AdmobConsentDebugGeography",
       "slug": "admobconsentdebuggeography",
       "members": [
@@ -2669,8 +2802,24 @@
         {
           "name": "NOT_EEA",
           "value": "2",
-          "tags": [],
+          "tags": [
+            {
+              "name": "deprecated"
+            }
+          ],
           "docs": "Geography appears as not in EEA for debug devices."
+        },
+        {
+          "name": "US",
+          "value": "3",
+          "tags": [],
+          "docs": "Geography appears as in regulated US state for debug devices."
+        },
+        {
+          "name": "OTHER",
+          "value": "4",
+          "tags": [],
+          "docs": "Geography appears as OTHER state for debug devices."
         }
       ]
     },
