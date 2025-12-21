@@ -253,8 +253,11 @@ public class BannerExecutor extends Executor {
                         public void onAdLoaded() {
                             final BannerAdSizeInfo sizeInfo = new BannerAdSizeInfo(mAdView);
 
+                            final JSObject loadedAdInfo = new JSObject();
+                            loadedAdInfo.put("isCollapsible", mAdView.isCollapsible());
+
                             notifyListeners(BannerAdPluginEvents.SizeChanged.getWebEventName(), sizeInfo);
-                            notifyListeners(BannerAdPluginEvents.Loaded.getWebEventName(), emptyObject);
+                            notifyListeners(BannerAdPluginEvents.Loaded.getWebEventName(), loadedAdInfo);
                             super.onAdLoaded();
                         }
 

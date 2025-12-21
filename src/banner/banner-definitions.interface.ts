@@ -69,7 +69,7 @@ export interface BannerDefinitions {
    */
   addListener(
     eventName: BannerAdPluginEvents.Loaded,
-    listenerFunc: () => void,
+    listenerFunc: (info: { isCollapsible: boolean }) => void,
   ): Promise<PluginListenerHandle>;
 
   /**
@@ -93,10 +93,7 @@ export interface BannerDefinitions {
    * @param listenerFunc
    * @since 3.0.0
    */
-  addListener(
-    eventName: BannerAdPluginEvents.Opened,
-    listenerFunc: () => void,
-  ): Promise<PluginListenerHandle>;
+  addListener(eventName: BannerAdPluginEvents.Opened, listenerFunc: () => void): Promise<PluginListenerHandle>;
 
   /**
    * Notice: The full-screen banner view will been dismissed.
@@ -106,10 +103,7 @@ export interface BannerDefinitions {
    * @param listenerFunc
    * @since 3.0.0
    */
-  addListener(
-    eventName: BannerAdPluginEvents.Closed,
-    listenerFunc: () => void,
-  ): Promise<PluginListenerHandle>;
+  addListener(eventName: BannerAdPluginEvents.Closed, listenerFunc: () => void): Promise<PluginListenerHandle>;
 
   /**
    * Unimplemented
@@ -119,8 +113,5 @@ export interface BannerDefinitions {
    * @param listenerFunc
    * @since 3.0.0
    */
-  addListener(
-    eventName: BannerAdPluginEvents.AdImpression,
-    listenerFunc: () => void,
-  ): Promise<PluginListenerHandle>;
+  addListener(eventName: BannerAdPluginEvents.AdImpression, listenerFunc: () => void): Promise<PluginListenerHandle>;
 }

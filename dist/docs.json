@@ -446,7 +446,7 @@
       },
       {
         "name": "addListener",
-        "signature": "(eventName: BannerAdPluginEvents.Loaded, listenerFunc: () => void) => Promise<PluginListenerHandle>",
+        "signature": "(eventName: BannerAdPluginEvents.Loaded, listenerFunc: (info: { isCollapsible: boolean; }) => void) => Promise<PluginListenerHandle>",
         "parameters": [
           {
             "name": "eventName",
@@ -456,7 +456,7 @@
           {
             "name": "listenerFunc",
             "docs": "",
-            "type": "() => void"
+            "type": "(info: { isCollapsible: boolean; }) => void"
           }
         ],
         "returns": "Promise<PluginListenerHandle>",
@@ -1973,7 +1973,7 @@
               "name": "since"
             }
           ],
-          "docs": "Banner Ad Size, defaults to ADAPTIVE_BANNER.\r\nIT can be: ADAPTIVE_BANNER, SMART_BANNER, BANNER,\r\nMEDIUM_RECTANGLE, FULL_BANNER, LEADERBOARD",
+          "docs": "Banner Ad Size, defaults to ADAPTIVE_BANNER.\nIT can be: ADAPTIVE_BANNER, SMART_BANNER, BANNER,\nMEDIUM_RECTANGLE, FULL_BANNER, LEADERBOARD",
           "complexTypes": [
             "BannerAdSize"
           ],
@@ -2001,7 +2001,7 @@
               "name": "since"
             }
           ],
-          "docs": "Set Banner Ad position.\r\nTOP_CENTER or CENTER or BOTTOM_CENTER",
+          "docs": "Set Banner Ad position.\nTOP_CENTER or CENTER or BOTTOM_CENTER",
           "complexTypes": [
             "BannerAdPosition"
           ],

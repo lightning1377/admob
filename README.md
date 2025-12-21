@@ -530,7 +530,7 @@ addListener(eventName: BannerAdPluginEvents.SizeChanged, listenerFunc: (info: Ad
 ### addListener(BannerAdPluginEvents.Loaded, ...)
 
 ```typescript
-addListener(eventName: BannerAdPluginEvents.Loaded, listenerFunc: () => void) => Promise<PluginListenerHandle>
+addListener(eventName: BannerAdPluginEvents.Loaded, listenerFunc: (info: { isCollapsible: boolean; }) => void) => Promise<PluginListenerHandle>
 ```
 
 Notice: request loaded Banner ad
@@ -538,7 +538,7 @@ Notice: request loaded Banner ad
 | Param              | Type                                                                         | Description    |
 | ------------------ | ---------------------------------------------------------------------------- | -------------- |
 | **`eventName`**    | <code><a href="#banneradpluginevents">BannerAdPluginEvents.Loaded</a></code> | bannerAdLoaded |
-| **`listenerFunc`** | <code>() =&gt; void</code>                                                   |                |
+| **`listenerFunc`** | <code>(info: { isCollapsible: boolean; }) =&gt; void</code>                  |                |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 

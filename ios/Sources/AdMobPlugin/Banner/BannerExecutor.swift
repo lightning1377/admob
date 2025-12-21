@@ -148,7 +148,9 @@ class BannerExecutor: NSObject, BannerViewDelegate {
                 "width": bannerView.frame.width,
                 "height": bannerView.frame.height
             ])
-            self.plugin?.notifyListeners(BannerAdPluginEvents.Loaded.rawValue, data: [:])
+            self.plugin?.notifyListeners(BannerAdPluginEvents.Loaded.rawValue, data: [
+                "isCollapsible": bannerView.isCollapsible
+            ])
         }
     }
 
