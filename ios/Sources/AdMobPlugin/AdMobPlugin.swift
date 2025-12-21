@@ -104,7 +104,11 @@ public class AdMobPlugin: CAPPlugin, CAPBridgedPlugin {
      */
     @objc func showBanner(_ call: CAPPluginCall) {
         let adUnitID = getAdId(call, "ca-app-pub-3940256099942544/6300978111")
-        let request = self.GADRequestWithOption(call.getBool("npa") ?? false)
+        let npa = call.getBool("npa") ?? false
+        let isCollapsible = call.getBool("isCollapsible") ?? false
+        let position = call.getString("position") ?? "BOTTOM_CENTER"
+
+        let request = self.GADRequestWithOption(npa, isCollapsible, position)
 
         DispatchQueue.main.async {
             self.bannerExecutor.showBanner(call, request, adUnitID)
@@ -274,12 +278,21 @@ public class AdMobPlugin: CAPPlugin, CAPBridgedPlugin {
         return adUnitID
     }
 
-    private func GADRequestWithOption(_ npa: Bool) -> Request {
+    private func GADRequestWithOption(_ npa: Bool, _ isCollapsible: Bool = false, _ position: String = "") -> Request {
         let request = Request()
+        var additionalParameters: [String: String] = [:]
 
         if npa {
+            additionalParameters["npa"] = "1"
+        }
+
+        if isCollapsible {
+            additionalParameters["collapsible"] = (position == "TOP_CENTER") ? "top" : "bottom"
+        }
+
+        if !additionalParameters.isEmpty {
             let extras = Extras()
-            extras.additionalParameters = ["npa": "1"]
+            extras.additionalParameters = additionalParameters
             request.register(extras)
         }
 

@@ -15,14 +15,22 @@ export interface BannerAdOptions extends AdOptions {
    * @default ADAPTIVE_BANNER
    * @since 3.0.0
    */
-   adSize?: BannerAdSize;
+  adSize?: BannerAdSize;
 
-   /**
-    * Set Banner Ad position.
-    * TOP_CENTER or CENTER or BOTTOM_CENTER
-    *
-    * @default TOP_CENTER
-    * @since 1.1.2
-    */
-   position?: BannerAdPosition;
+  /**
+   * Set Banner Ad position.
+   * TOP_CENTER or CENTER or BOTTOM_CENTER
+   *
+   * @default TOP_CENTER
+   * @since 1.1.2
+   */
+  position?: BannerAdPosition;
+
+  /**
+   * Set isCollapsible
+   *
+   * @default false
+   * @since 6.0.0
+   */
+  isCollapsible?: boolean;
 }

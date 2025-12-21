@@ -2006,6 +2006,32 @@
             "BannerAdPosition"
           ],
           "type": "BannerAdPosition"
+        },
+        {
+          "name": "isCollapsible",
+          "tags": [
+            {
+              "text": [
+                {
+                  "text": "false",
+                  "kind": "text"
+                }
+              ],
+              "name": "default"
+            },
+            {
+              "text": [
+                {
+                  "text": "6.0.0",
+                  "kind": "text"
+                }
+              ],
+              "name": "since"
+            }
+          ],
+          "docs": "Set isCollapsible",
+          "complexTypes": [],
+          "type": "boolean | undefined"
         }
       ],
       "importObject": [

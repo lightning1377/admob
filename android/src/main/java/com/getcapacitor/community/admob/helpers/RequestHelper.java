@@ -17,10 +17,21 @@ public final class RequestHelper {
     public static AdRequest createRequest(AdOptions adOptions) {
         AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
 
-        // TODO: Allow more key/value extras?
+        Bundle extras = new Bundle();
+
         if (adOptions.npa) {
-            Bundle extras = new Bundle();
             extras.putString("npa", "1");
+        }
+
+        if (adOptions.isCollapsible) {
+            String collapsiblePosition = "bottom";
+            if (adOptions.position != null && adOptions.position.equals("TOP_CENTER")) {
+                collapsiblePosition = "top";
+            }
+            extras.putString("collapsible", collapsiblePosition);
+        }
+
+        if (!extras.isEmpty()) {
             adRequestBuilder.addNetworkExtrasBundle(AdMobAdapter.class, extras);
         }
 

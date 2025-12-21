@@ -62,6 +62,12 @@ public abstract class AdOptions {
     public final boolean npa;
 
     /**
+     * Set to true to request a collapsible banner ad
+     * Default is false
+     */
+    public final boolean isCollapsible;
+
+    /**
      * Used for Server side verification of Reward Ads
      */
     public final SsvInfo ssvInfo;
@@ -79,6 +85,7 @@ public abstract class AdOptions {
         this.position = call.getString("position", "BOTTOM_CENTER");
         this.margin = call.getInt("margin", 0);
         this.npa = call.getBoolean("npa", false);
+        this.isCollapsible = call.getBoolean("isCollapsible", false);
         this.ssvInfo = new SsvInfo(call);
 
         String sizeString = call.getString("adSize", BannerAdSizeEnum.ADAPTIVE_BANNER.name());
@@ -91,6 +98,7 @@ public abstract class AdOptions {
         this.position = position;
         this.margin = margin;
         this.npa = npa;
+        this.isCollapsible = false;
         this.adSize = adSize;
         this.ssvInfo = ssvInfo;
     }
@@ -180,6 +188,7 @@ public abstract class AdOptions {
         private String position = "TesterAdOptionsBuilder__position";
         private int margin = 1;
         private boolean npa = false;
+        private boolean isCollapsible = false;
         private BannerAdSizeEnum adSize = BannerAdSizeEnum.ADAPTIVE_BANNER;
         private SsvInfo ssvInfo = new SsvInfo();
 
@@ -195,6 +204,11 @@ public abstract class AdOptions {
 
         public TesterAdOptionsBuilder setNpa(boolean value) {
             npa = value;
+            return this;
+        }
+
+        public TesterAdOptionsBuilder setIsCollapsible(boolean value) {
+            isCollapsible = value;
             return this;
         }
 
