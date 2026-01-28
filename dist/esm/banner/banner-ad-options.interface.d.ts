@@ -1,4 +1,5 @@
 import type { AdOptions } from '../shared';
+
 import type { BannerAdPosition } from './banner-ad-position.enum';
 import type { BannerAdSize } from './banner-ad-size.enum';
 /**
