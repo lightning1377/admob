@@ -92,13 +92,22 @@ public abstract class AdOptions {
         this.adSize = AdOptions.adSizeStringToAdSizeEnum(sizeString);
     }
 
-    private AdOptions(String id, boolean isTesting, String position, int margin, boolean npa, BannerAdSizeEnum adSize, SsvInfo ssvInfo) {
+    private AdOptions(
+        String id,
+        boolean isTesting,
+        String position,
+        int margin,
+        boolean npa,
+        boolean isCollapsible,
+        BannerAdSizeEnum adSize,
+        SsvInfo ssvInfo
+    ) {
         this.adId = id;
         this.isTesting = isTesting;
         this.position = position;
         this.margin = margin;
         this.npa = npa;
-        this.isCollapsible = false;
+        this.isCollapsible = isCollapsible;
         this.adSize = adSize;
         this.ssvInfo = ssvInfo;
     }
@@ -238,7 +247,7 @@ public abstract class AdOptions {
         }
 
         public AdOptions build() {
-            return new AdOptions(id, isTesting, position, margin, npa, adSize, ssvInfo) {
+            return new AdOptions(id, isTesting, position, margin, npa, isCollapsible, adSize, ssvInfo) {
                 @Override
                 public String getTestingId() {
                     return testingID;

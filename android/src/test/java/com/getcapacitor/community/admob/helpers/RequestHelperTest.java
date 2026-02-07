@@ -33,4 +33,40 @@ class RequestHelperTest {
             }
         }
     }
+
+    @Test
+    @DisplayName("#createRequest should add collapsible bottom to the bundle if isCollapsible is requested with BOTTOM_CENTER position")
+    void isCollapsibleBottom() {
+        try (MockedConstruction<AdRequest.Builder> adRequestBuilderMockedConstruction = Mockito.mockConstruction(AdRequest.Builder.class)) {
+            try (MockedConstruction<Bundle> bundleMockedConstruction = Mockito.mockConstruction(Bundle.class)) {
+                AdOptions adOptions = new AdOptions.TesterAdOptionsBuilder().setIsCollapsible(true).setPosition("BOTTOM_CENTER").build();
+
+                // Act
+                RequestHelper.createRequest(adOptions);
+
+                Bundle mockedBundle = bundleMockedConstruction.constructed().get(0);
+                AdRequest.Builder adRequestBuilder = adRequestBuilderMockedConstruction.constructed().get(0);
+                verify(mockedBundle).putString("collapsible", "bottom");
+                verify(adRequestBuilder).addNetworkExtrasBundle(AdMobAdapter.class, mockedBundle);
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("#createRequest should add collapsible top to the bundle if isCollapsible is requested with TOP_CENTER position")
+    void isCollapsibleTop() {
+        try (MockedConstruction<AdRequest.Builder> adRequestBuilderMockedConstruction = Mockito.mockConstruction(AdRequest.Builder.class)) {
+            try (MockedConstruction<Bundle> bundleMockedConstruction = Mockito.mockConstruction(Bundle.class)) {
+                AdOptions adOptions = new AdOptions.TesterAdOptionsBuilder().setIsCollapsible(true).setPosition("TOP_CENTER").build();
+
+                // Act
+                RequestHelper.createRequest(adOptions);
+
+                Bundle mockedBundle = bundleMockedConstruction.constructed().get(0);
+                AdRequest.Builder adRequestBuilder = adRequestBuilderMockedConstruction.constructed().get(0);
+                verify(mockedBundle).putString("collapsible", "top");
+                verify(adRequestBuilder).addNetworkExtrasBundle(AdMobAdapter.class, mockedBundle);
+            }
+        }
+    }
 }
