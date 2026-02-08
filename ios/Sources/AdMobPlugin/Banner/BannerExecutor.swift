@@ -16,35 +16,33 @@ class BannerExecutor: NSObject, BannerViewDelegate {
             let adMargin = call.getInt("margin") ?? 0
 
             var bannerSize: AdSize
+            
+            // 1. Calculate the available safe width
+            let frame = rootViewController.view.frame.inset(by: rootViewController.view.safeAreaInsets)
+            let viewWidth = frame.size.width
+            
+            // Helper: Get Adaptive Size
+            // GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth is the standard GAD function
+            let adaptiveSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(viewWidth)
 
+            // 2. Determine Size with Fallback Logic
             switch adSize {
             case "BANNER":
                 bannerSize = AdSizeBanner
-                break
             case "LARGE_BANNER":
                 bannerSize = AdSizeLargeBanner
-                break
-            case "FULL_BANNER":
-                bannerSize = AdSizeFullBanner
-                break
-            case "LEADERBOARD":
-                bannerSize = AdSizeLeaderboard
-                break
             case "MEDIUM_RECTANGLE":
                 bannerSize = AdSizeMediumRectangle
-                break
+            case "FULL_BANNER":
+                // 468pt width. Fallback if screen is too narrow.
+                bannerSize = viewWidth >= 468 ? AdSizeFullBanner : adaptiveSize
+            case "LEADERBOARD":
+                // 728pt width (Tablets). Fallback if screen is too narrow.
+                bannerSize = viewWidth >= 728 ? AdSizeLeaderboard : adaptiveSize
             case "SMART_BANNER":
                 bannerSize = kGADAdSizeSmartBannerPortrait
-                break
             default: // ADAPTIVE_BANNER
-                let frame = { () -> CGRect in
-                    // Here safe area is taken into account, hence the view frame is used
-                    // after the view has been laid out.
-                    return rootViewController.view.frame.inset(by: rootViewController.view.safeAreaInsets)
-                }()
-                let viewWidth = frame.size.width
-                bannerSize = currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
-                break
+                bannerSize = adaptiveSize
             }
 
             self.bannerView = BannerView(adSize: bannerSize)
@@ -128,22 +126,36 @@ class BannerExecutor: NSObject, BannerViewDelegate {
         NSLog("bannerViewDidReceiveAd")
         if let rootViewController = plugin?.getRootVC() {
             rootViewController.view.addSubview(bannerView)
-            rootViewController.view.addConstraints(
-                [NSLayoutConstraint(item: bannerView,
-                                    attribute: self.adPosition == "TOP_CENTER" ? .top : .bottom,
-                                    relatedBy: .equal,
-                                    toItem: rootViewController.view.safeAreaLayoutGuide,
-                                    attribute: self.adPosition == "TOP_CENTER" ? .top : .bottom,
-                                    multiplier: 1,
-                                    constant: CGFloat(Int(self.Margin) * -1)),
-                 NSLayoutConstraint(item: bannerView,
-                                    attribute: .centerX,
-                                    relatedBy: .equal,
-                                    toItem: rootViewController.view,
-                                    attribute: .centerX,
-                                    multiplier: 1,
-                                    constant: 0)
-                ])
+            
+            // Enable AutoLayout
+            bannerView.translatesAutoresizingMaskIntoConstraints = false
+            
+            // 3. Apply Constraints (Center & Safe Area)
+            var constraints: [NSLayoutConstraint] = [
+                // Always center horizontally
+                bannerView.centerXAnchor.constraint(equalTo: rootViewController.view.centerXAnchor)
+            ]
+            
+            if self.adPosition == "TOP_CENTER" {
+                // Pin to Safe Area TOP + Margin
+                constraints.append(
+                    bannerView.topAnchor.constraint(
+                        equalTo: rootViewController.view.safeAreaLayoutGuide.topAnchor,
+                        constant: CGFloat(self.Margin)
+                    )
+                )
+            } else {
+                // Pin to Safe Area BOTTOM - Margin
+                constraints.append(
+                    bannerView.bottomAnchor.constraint(
+                        equalTo: rootViewController.view.safeAreaLayoutGuide.bottomAnchor,
+                        constant: CGFloat(-self.Margin)
+                    )
+                )
+            }
+            
+            NSLayoutConstraint.activate(constraints)
+            
             self.plugin?.notifyListeners(BannerAdPluginEvents.SizeChanged.rawValue, data: [
                 "width": bannerView.frame.width,
                 "height": bannerView.frame.height
