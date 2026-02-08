@@ -9,9 +9,9 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.util.Supplier;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
@@ -44,110 +44,107 @@ public class BannerExecutor extends Executor {
     }
 
     public void initialize() {
-        mViewGroup = (ViewGroup) ((ViewGroup) activitySupplier.get().findViewById(android.R.id.content)).getChildAt(0);
+        // Use android.R.id.content (FrameLayout) to ensure LayoutParams work correctly
+        mViewGroup = (ViewGroup) activitySupplier.get().findViewById(android.R.id.content);
     }
 
     public void showBanner(final PluginCall call) {
         final AdOptions adOptions = AdOptions.getFactory().createBannerOptions(call);
-        float density = contextSupplier.get().getResources().getDisplayMetrics().density;
-
-        int defaultWidthPixels = contextSupplier.get().getResources().getDisplayMetrics().widthPixels;
-
-        DisplayMetrics metrics = new DisplayMetrics();
-        activitySupplier.get().getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
-        int realWidthPixels = metrics.widthPixels;
-
-        boolean fullscreen = false;
-        if ((activitySupplier.get().getWindow().getAttributes().flags & WindowManager.LayoutParams.FLAG_FULLSCREEN) != 0) {
-            fullscreen = true;
-        }
 
         if (mAdView != null) {
             updateExistingAdView(adOptions);
+            call.resolve();
             return;
         }
 
-        // Why a try catch block?
-        try {
-            mAdView = new AdView(contextSupplier.get());
+        // 1. Calculate Screen Metrics
+        DisplayMetrics metrics = contextSupplier.get().getResources().getDisplayMetrics();
+        float density = metrics.density;
+        int screenWidthPixels = metrics.widthPixels;
+        int screenWidthDp = (int) (screenWidthPixels / density);
 
-            if (!adOptions.adSize.toString().equals("ADAPTIVE_BANNER")) {
-                mAdView.setAdSize(adOptions.adSize.getSize());
-            } else {
-                // ADAPTIVE BANNER
-                mAdView.setAdSize(
-                    AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(contextSupplier.get(), (int) (defaultWidthPixels / density))
-                );
-            }
+        // 2. Create Views on UI Thread
+        activitySupplier
+            .get()
+            .runOnUiThread(() -> {
+                try {
+                    mAdView = new AdView(contextSupplier.get());
 
-            // Setup AdView Layout
-            mAdViewLayout = new RelativeLayout(contextSupplier.get());
-            mAdViewLayout.setHorizontalGravity(Gravity.CENTER_HORIZONTAL);
-            mAdViewLayout.setVerticalGravity(Gravity.BOTTOM);
+                    // --- Adaptive Fallback Logic ---
+                    AdSize finalSize;
+                    AdSize adaptiveSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(contextSupplier.get(), screenWidthDp);
+                    String requestedSize = adOptions.adSize.toString();
 
-            final CoordinatorLayout.LayoutParams mAdViewLayoutParams = new CoordinatorLayout.LayoutParams(
-                CoordinatorLayout.LayoutParams.WRAP_CONTENT,
-                CoordinatorLayout.LayoutParams.WRAP_CONTENT
-            );
-
-            // TODO: Make an enum like the AdSizeEnum?
-            switch (adOptions.position) {
-                case "TOP_CENTER":
-                    mAdViewLayoutParams.gravity = Gravity.TOP;
-                    break;
-                case "CENTER":
-                    mAdViewLayoutParams.gravity = Gravity.CENTER;
-                    break;
-                default:
-                    mAdViewLayoutParams.gravity = Gravity.BOTTOM;
-                    break;
-            }
-
-            // set Safe Area only for Android 15+
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                View rootView = activitySupplier.get().getWindow().getDecorView();
-                rootView.setOnApplyWindowInsetsListener((v, insets) -> {
-                    int bottomInset = insets.getSystemWindowInsetBottom();
-                    int topInset = insets.getSystemWindowInsetTop();
-
-                    if ("TOP_CENTER".equals(adOptions.position)) {
-                        mAdViewLayoutParams.setMargins(0, topInset, 0, 0);
+                    // If specific sizes are requested but screen is too narrow, fallback to Adaptive
+                    if ("ADAPTIVE_BANNER".equals(requestedSize)) {
+                        finalSize = adaptiveSize;
+                    } else if ("LEADERBOARD".equals(requestedSize) && screenWidthDp < 728) {
+                        finalSize = adaptiveSize;
+                    } else if ("FULL_BANNER".equals(requestedSize) && screenWidthDp < 468) {
+                        finalSize = adaptiveSize;
                     } else {
-                        mAdViewLayoutParams.setMargins(0, 0, 0, bottomInset);
+                        finalSize = adOptions.adSize.getSize();
+                    }
+
+                    mAdView.setAdSize(finalSize);
+
+                    // --- Layout Setup ---
+                    mAdViewLayout = new RelativeLayout(contextSupplier.get());
+                    mAdViewLayout.setGravity(Gravity.CENTER_HORIZONTAL); // Horizontal Centering
+
+                    final FrameLayout.LayoutParams mAdViewLayoutParams = new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT, // Width Match Parent to allow Gravity centering
+                        FrameLayout.LayoutParams.WRAP_CONTENT
+                    );
+
+                    // --- Positioning Gravity ---
+                    if ("TOP_CENTER".equals(adOptions.position)) {
+                        mAdViewLayoutParams.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+                    } else if ("CENTER".equals(adOptions.position)) {
+                        mAdViewLayoutParams.gravity = Gravity.CENTER;
+                    } else {
+                        mAdViewLayoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+                    }
+
+                    // --- Original Window Inset Logic (Restored) ---
+                    // This logic attaches to DecorView, exactly as requested
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                        View rootView = activitySupplier.get().getWindow().getDecorView();
+                        rootView.setOnApplyWindowInsetsListener((v, insets) -> {
+                            int bottomInset = insets.getSystemWindowInsetBottom();
+                            int topInset = insets.getSystemWindowInsetTop();
+
+                            int densityMargin = (int) (adOptions.margin * density);
+
+                            if ("TOP_CENTER".equals(adOptions.position)) {
+                                mAdViewLayoutParams.setMargins(0, topInset + densityMargin, 0, 0);
+                            } else if (!"CENTER".equals(adOptions.position)) {
+                                mAdViewLayoutParams.setMargins(0, 0, 0, bottomInset + densityMargin);
+                            }
+
+                            // Update the layout params dynamically
+                            mAdViewLayout.setLayoutParams(mAdViewLayoutParams);
+                            return insets;
+                        });
+                    }
+
+                    // Apply initial margins (important for versions < Android 15 or before Insets apply)
+                    int densityMargin = (int) (adOptions.margin * density);
+                    if ("TOP_CENTER".equals(adOptions.position)) {
+                        mAdViewLayoutParams.setMargins(0, densityMargin, 0, 0);
+                    } else if (!"CENTER".equals(adOptions.position)) {
+                        mAdViewLayoutParams.setMargins(0, 0, 0, densityMargin);
                     }
 
                     mAdViewLayout.setLayoutParams(mAdViewLayoutParams);
-                    return insets;
-                });
-            }
 
-            mAdViewLayout.setLayoutParams(mAdViewLayoutParams);
+                    loadAndAttachAd(adOptions);
 
-            int densityMargin = (int) (adOptions.margin * density);
-
-            // Center Banner Ads
-            int adWidth = (int) (adOptions.adSize.getSize().getWidth() * density);
-
-            if (adWidth <= 0 || adOptions.adSize.toString().equals("ADAPTIVE_BANNER")) {
-                int margin = 0;
-                if (fullscreen) {
-                    margin = (realWidthPixels - defaultWidthPixels) / 2;
+                    call.resolve();
+                } catch (Exception ex) {
+                    call.reject(ex.getLocalizedMessage(), ex);
                 }
-                mAdViewLayoutParams.setMargins(margin, densityMargin, margin, densityMargin);
-            } else {
-                int sideMargin = ((int) defaultWidthPixels - adWidth) / 2;
-                if (fullscreen) {
-                    sideMargin = (realWidthPixels - adWidth) / 2;
-                }
-                mAdViewLayoutParams.setMargins(sideMargin, densityMargin, sideMargin, densityMargin);
-            }
-
-            createNewAdView(adOptions);
-
-            call.resolve();
-        } catch (Exception ex) {
-            call.reject(ex.getLocalizedMessage(), ex);
-        }
+            });
     }
 
     public void hideBanner(final PluginCall call) {
@@ -163,11 +160,7 @@ public class BannerExecutor extends Executor {
                     if (mAdViewLayout != null && mAdView != null) {
                         mAdViewLayout.setVisibility(View.GONE);
                         mAdView.pause();
-
-                        final BannerAdSizeInfo sizeInfo = new BannerAdSizeInfo(0, 0);
-
-                        notifyListeners(BannerAdPluginEvents.SizeChanged.getWebEventName(), sizeInfo);
-
+                        notifyListeners(BannerAdPluginEvents.SizeChanged.getWebEventName(), new BannerAdSizeInfo(0, 0));
                         call.resolve();
                     }
                 });
@@ -184,14 +177,10 @@ public class BannerExecutor extends Executor {
                     if (mAdViewLayout != null && mAdView != null) {
                         mAdViewLayout.setVisibility(View.VISIBLE);
                         mAdView.resume();
-
-                        final BannerAdSizeInfo sizeInfo = new BannerAdSizeInfo(mAdView);
-                        notifyListeners(BannerAdPluginEvents.SizeChanged.getWebEventName(), sizeInfo);
-
+                        notifyListeners(BannerAdPluginEvents.SizeChanged.getWebEventName(), new BannerAdSizeInfo(mAdView));
                         Log.d(logTag, "Banner AD Resumed");
                     }
                 });
-
             call.resolve();
         } catch (Exception ex) {
             call.reject(ex.getLocalizedMessage(), ex);
@@ -200,22 +189,23 @@ public class BannerExecutor extends Executor {
 
     public void removeBanner(final PluginCall call) {
         try {
-            if (mAdView != null) {
-                activitySupplier
-                    .get()
-                    .runOnUiThread(() -> {
-                        if (mAdView != null) {
+            activitySupplier
+                .get()
+                .runOnUiThread(() -> {
+                    if (mAdView != null) {
+                        if (mViewGroup != null && mAdViewLayout != null) {
                             mViewGroup.removeView(mAdViewLayout);
-                            mAdViewLayout.removeView(mAdView);
-                            mAdView.destroy();
-                            mAdView = null;
-                            Log.d(logTag, "Banner AD Removed");
-                            final BannerAdSizeInfo sizeInfo = new BannerAdSizeInfo(0, 0);
-                            notifyListeners(BannerAdPluginEvents.SizeChanged.getWebEventName(), sizeInfo);
                         }
-                    });
-            }
-
+                        if (mAdViewLayout != null) {
+                            mAdViewLayout.removeView(mAdView);
+                        }
+                        mAdView.destroy();
+                        mAdView = null;
+                        mAdViewLayout = null;
+                        Log.d(logTag, "Banner AD Removed");
+                        notifyListeners(BannerAdPluginEvents.SizeChanged.getWebEventName(), new BannerAdSizeInfo(0, 0));
+                    }
+                });
             call.resolve();
         } catch (Exception ex) {
             call.reject(ex.getLocalizedMessage(), ex);
@@ -233,80 +223,65 @@ public class BannerExecutor extends Executor {
             });
     }
 
-    /**
-     * Follow iOS method Name:
-     * https://developers.google.com/admob/ios/banner?hl=ja
-     */
-    private void createNewAdView(AdOptions adOptions) {
-        // Run AdMob In Main UI Thread
-        activitySupplier
-            .get()
-            .runOnUiThread(() -> {
-                if (mAdView != null && mAdViewLayout != null) {
-                    final AdRequest adRequest = RequestHelper.createRequest(adOptions);
-                    // Assign the correct id needed
-                    AdViewIdHelper.assignIdToAdView(mAdView, adOptions, adRequest, logTag, contextSupplier.get());
-                    // Add the AdView to the view hierarchy.
-                    mAdViewLayout.addView(mAdView);
-                    // Start loading the ad.
-                    mAdView.loadAd(adRequest);
-                    mAdView.setAdListener(
-                        new AdListener() {
-                            @Override
-                            public void onAdLoaded() {
-                                if (mAdView != null) {
-                                    final BannerAdSizeInfo sizeInfo = new BannerAdSizeInfo(mAdView);
+    private void loadAndAttachAd(AdOptions adOptions) {
+        if (mAdView != null && mAdViewLayout != null) {
+            final AdRequest adRequest = RequestHelper.createRequest(adOptions);
+            AdViewIdHelper.assignIdToAdView(mAdView, adOptions, adRequest, logTag, contextSupplier.get());
 
-                                    final JSObject loadedAdInfo = new JSObject();
-                                    loadedAdInfo.put("isCollapsible", mAdView.isCollapsible());
+            // Add AdView to Container
+            mAdViewLayout.addView(mAdView);
 
-                                    notifyListeners(BannerAdPluginEvents.SizeChanged.getWebEventName(), sizeInfo);
-                                    notifyListeners(BannerAdPluginEvents.Loaded.getWebEventName(), loadedAdInfo);
-                                }
-                                super.onAdLoaded();
-                            }
+            // Start Load
+            mAdView.loadAd(adRequest);
 
-                            @Override
-                            public void onAdFailedToLoad(@NonNull LoadAdError adError) {
-                                if (mAdView != null) {
-                                    mViewGroup.removeView(mAdViewLayout);
-                                    mAdViewLayout.removeView(mAdView);
-                                    mAdView.destroy();
-                                    mAdView = null;
-                                }
-
-                                final BannerAdSizeInfo sizeInfo = new BannerAdSizeInfo(0, 0);
-                                notifyListeners(BannerAdPluginEvents.SizeChanged.getWebEventName(), sizeInfo);
-
-                                final AdMobPluginError adMobPluginError = new AdMobPluginError(adError);
-                                notifyListeners(BannerAdPluginEvents.FailedToLoad.getWebEventName(), adMobPluginError);
-
-                                super.onAdFailedToLoad(adError);
-                            }
-
-                            @Override
-                            public void onAdOpened() {
-                                notifyListeners(BannerAdPluginEvents.Opened.getWebEventName(), emptyObject);
-                                super.onAdOpened();
-                            }
-
-                            @Override
-                            public void onAdClosed() {
-                                notifyListeners(BannerAdPluginEvents.Closed.getWebEventName(), emptyObject);
-                                super.onAdClosed();
-                            }
-
-                            @Override
-                            public void onAdImpression() {
-                                notifyListeners(BannerAdPluginEvents.AdImpression.getWebEventName(), emptyObject);
-                                super.onAdImpression();
-                            }
+            mAdView.setAdListener(
+                new AdListener() {
+                    @Override
+                    public void onAdLoaded() {
+                        if (mAdView != null) {
+                            JSObject loadedAdInfo = new JSObject();
+                            loadedAdInfo.put("isCollapsible", mAdView.isCollapsible());
+                            notifyListeners(BannerAdPluginEvents.SizeChanged.getWebEventName(), new BannerAdSizeInfo(mAdView));
+                            notifyListeners(BannerAdPluginEvents.Loaded.getWebEventName(), loadedAdInfo);
                         }
-                    );
+                        super.onAdLoaded();
+                    }
 
-                    // Add AdViewLayout top of the WebView
-                    mViewGroup.addView(mAdViewLayout);
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError adError) {
+                        if (mAdView != null) {
+                            if (mViewGroup != null) mViewGroup.removeView(mAdViewLayout);
+                            if (mAdViewLayout != null) mAdViewLayout.removeView(mAdView);
+                            mAdView.destroy();
+                            mAdView = null;
+                        }
+                        notifyListeners(BannerAdPluginEvents.SizeChanged.getWebEventName(), new BannerAdSizeInfo(0, 0));
+                        notifyListeners(BannerAdPluginEvents.FailedToLoad.getWebEventName(), new AdMobPluginError(adError));
+                        super.onAdFailedToLoad(adError);
+                    }
+
+                    @Override
+                    public void onAdOpened() {
+                        notifyListeners(BannerAdPluginEvents.Opened.getWebEventName(), emptyObject);
+                        super.onAdOpened();
+                    }
+
+                    @Override
+                    public void onAdClosed() {
+                        notifyListeners(BannerAdPluginEvents.Closed.getWebEventName(), emptyObject);
+                        super.onAdClosed();
+                    }
+
+                    @Override
+                    public void onAdImpression() {
+                        notifyListeners(BannerAdPluginEvents.AdImpression.getWebEventName(), emptyObject);
+                        super.onAdImpression();
+                    }
                 }
-            });
+            );
+
+            // Add Container to Main View
+            mViewGroup.addView(mAdViewLayout);
+        }
     }
 }
