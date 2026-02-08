@@ -40,17 +40,19 @@ public class AdMobPlugin: CAPPlugin, CAPBridgedPlugin {
     private let adRewardInterstitialExecutor = AdRewardInterstitialExecutor()
     private let consentExecutor = ConsentExecutor()
 
+    public override func load() {
+        self.bannerExecutor.plugin = self
+        self.adInterstitialExecutor.plugin = self
+        self.adRewardExecutor.plugin = self
+        self.adRewardInterstitialExecutor.plugin = self
+        self.consentExecutor.plugin = self
+    }
+
     /**
      * Enable SKAdNetwork to track conversions
      * https://developers.google.com/admob/ios/ios14
      */
     @objc func initialize(_ call: CAPPluginCall) {
-        self.bannerExecutor.plugin = self
-        self.adInterstitialExecutor.plugin = self
-        self.adRewardExecutor.plugin = self
-        self.adRewardInterstitialExecutor.plugin = self
-        self.adInterstitialExecutor.plugin = self
-        self.consentExecutor.plugin = self
         self.setRequestConfiguration(call)
 
         MobileAds.shared.start(completionHandler: nil)

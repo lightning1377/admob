@@ -22,27 +22,34 @@ class BannerExecutor: NSObject, BannerViewDelegate {
             let viewWidth = frame.size.width
             
             // Helper: Get Adaptive Size
-            // GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth is the standard GAD function
-            let adaptiveSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(viewWidth)
+            let adaptiveSize = currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
 
             // 2. Determine Size with Fallback Logic
             switch adSize {
             case "BANNER":
                 bannerSize = AdSizeBanner
+                break
             case "LARGE_BANNER":
                 bannerSize = AdSizeLargeBanner
+                break
             case "MEDIUM_RECTANGLE":
                 bannerSize = AdSizeMediumRectangle
+                break
             case "FULL_BANNER":
                 // 468pt width. Fallback if screen is too narrow.
                 bannerSize = viewWidth >= 468 ? AdSizeFullBanner : adaptiveSize
+                break
             case "LEADERBOARD":
                 // 728pt width (Tablets). Fallback if screen is too narrow.
                 bannerSize = viewWidth >= 728 ? AdSizeLeaderboard : adaptiveSize
-            case "SMART_BANNER":
-                bannerSize = kGADAdSizeSmartBannerPortrait
+                break
+            // This is deprecated, commented out to fallback to adaptive banner
+            // case "SMART_BANNER":
+            //     bannerSize = kGADAdSizeSmartBannerPortrait
+            //     break
             default: // ADAPTIVE_BANNER
                 bannerSize = adaptiveSize
+                break
             }
 
             self.bannerView = BannerView(adSize: bannerSize)
