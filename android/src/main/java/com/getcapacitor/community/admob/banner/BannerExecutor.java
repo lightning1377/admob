@@ -12,7 +12,10 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
+import androidx.core.graphics.Insets;
 import androidx.core.util.Supplier;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.community.admob.helpers.AdViewIdHelper;
@@ -106,37 +109,7 @@ public class BannerExecutor extends Executor {
                         mAdViewLayoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
                     }
 
-                    // --- Original Window Inset Logic (Restored) ---
-                    // This logic attaches to DecorView, exactly as requested
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                        View rootView = activitySupplier.get().getWindow().getDecorView();
-                        rootView.setOnApplyWindowInsetsListener((v, insets) -> {
-                            int bottomInset = insets.getSystemWindowInsetBottom();
-                            int topInset = insets.getSystemWindowInsetTop();
-
-                            int densityMargin = (int) (adOptions.margin * density);
-
-                            if ("TOP_CENTER".equals(adOptions.position)) {
-                                mAdViewLayoutParams.setMargins(0, topInset + densityMargin, 0, 0);
-                            } else if (!"CENTER".equals(adOptions.position)) {
-                                mAdViewLayoutParams.setMargins(0, 0, 0, bottomInset + densityMargin);
-                            }
-
-                            // Update the layout params dynamically
-                            mAdViewLayout.setLayoutParams(mAdViewLayoutParams);
-                            return insets;
-                        });
-                    }
-
-                    // Apply initial margins (important for versions < Android 15 or before Insets apply)
-                    int densityMargin = (int) (adOptions.margin * density);
-                    if ("TOP_CENTER".equals(adOptions.position)) {
-                        mAdViewLayoutParams.setMargins(0, densityMargin, 0, 0);
-                    } else if (!"CENTER".equals(adOptions.position)) {
-                        mAdViewLayoutParams.setMargins(0, 0, 0, densityMargin);
-                    }
-
-                    mAdViewLayout.setLayoutParams(mAdViewLayoutParams);
+                    applySafeAreaInsets(mAdViewLayout, mAdViewLayoutParams, adOptions, density);
 
                     loadAndAttachAd(adOptions);
 
@@ -282,6 +255,40 @@ public class BannerExecutor extends Executor {
 
             // Add Container to Main View
             mViewGroup.addView(mAdViewLayout);
+            mAdViewLayout.requestApplyInsets();
         }
+    }
+
+    private void applySafeAreaInsets(View container, FrameLayout.LayoutParams layoutParams, AdOptions adOptions, float density) {
+        final int densityMarginPx = (int) (adOptions.margin * density);
+
+        // Initial margins (fallback before insets are applied)
+        if ("TOP_CENTER".equals(adOptions.position)) {
+            layoutParams.setMargins(0, densityMarginPx, 0, 0);
+        } else if ("CENTER".equals(adOptions.position)) {
+            layoutParams.setMargins(0, 0, 0, 0);
+        } else { // bottom / default
+            layoutParams.setMargins(0, 0, 0, densityMarginPx);
+        }
+
+        container.setLayoutParams(layoutParams);
+
+        // Insets listener
+        ViewCompat.setOnApplyWindowInsetsListener(container, (v, windowInsets) -> {
+            Insets compatInsets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+
+            if ("TOP_CENTER".equals(adOptions.position)) {
+                layoutParams.setMargins(0, compatInsets.top + densityMarginPx, 0, 0);
+            } else if ("CENTER".equals(adOptions.position)) {
+                layoutParams.setMargins(0, 0, 0, 0);
+            } else {
+                layoutParams.setMargins(0, 0, 0, compatInsets.bottom + densityMarginPx);
+            }
+
+            container.setLayoutParams(layoutParams);
+
+            // Important: propagate insets
+            return windowInsets;
+        });
     }
 }
