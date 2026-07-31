@@ -193,9 +193,14 @@ public class AdMob extends Plugin {
 
     @PluginMethod
     public void openAdInspector(final PluginCall call) {
+        if (getActivity() == null) {
+            call.reject("Activity is null");
+            return;
+        }
+
         getActivity()
             .runOnUiThread(() -> {
-                MobileAds.openAdInspector(getContext(), error -> {
+                MobileAds.openAdInspector(getActivity(), error -> {
                     if (error != null) {
                         call.reject(error.getMessage());
                     } else {
